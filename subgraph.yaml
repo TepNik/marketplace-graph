@@ -1,0 +1,59 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: undefined
+    network: bsc
+    source:
+      address: "0xc5DEFEF35FDd1084A97e3F0c9569Cf20d68fCDDc"
+      abi: NftMarketplace
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - AddedAdminRoyalty
+        - ChangedDefaultFeeForOwner
+        - DisabledAdminRoyalty
+        - FeePercentageChange
+        - FeeReceiverChange
+        - FeeTransferred
+        - RoleAdminChanged
+        - RoleGranted
+        - RoleRevoked
+        - RoyaltyTransferred
+        - SwapMade
+        - SwapsPaused
+        - SwapsUnpaused
+      abis:
+        - name: NftMarketplace
+          file: ./abis/NftMarketplace.json
+      eventHandlers:
+        - event: AddedAdminRoyalty(indexed address,address,address,uint16)
+          handler: handleAddedAdminRoyalty
+        - event: ChangedDefaultFeeForOwner(indexed address,uint256,uint256)
+          handler: handleChangedDefaultFeeForOwner
+        - event: DisabledAdminRoyalty(indexed address,address)
+          handler: handleDisabledAdminRoyalty
+        - event: FeePercentageChange(indexed address,uint256,uint256)
+          handler: handleFeePercentageChange
+        - event: FeeReceiverChange(indexed address,indexed address,indexed address)
+          handler: handleFeeReceiverChange
+        - event: FeeTransferred(indexed address,indexed address,uint256)
+          handler: handleFeeTransferred
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: RoyaltyTransferred(indexed address,indexed address,uint256)
+          handler: handleRoyaltyTransferred
+        - event: SwapMade((address,address,bool,bool,(uint8,address,uint256,uint256),(uint8,address,uint256,uint256),uint256),indexed address,indexed address,bytes32)
+          handler: handleSwapMade
+        - event: SwapsPaused(indexed address)
+          handler: handleSwapsPaused
+        - event: SwapsUnpaused(indexed address)
+          handler: handleSwapsUnpaused
+      file: ./src/nft-marketplace.ts
