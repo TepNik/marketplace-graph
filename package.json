@@ -2,15 +2,17 @@
   "name": "marketplace-graph",
   "license": "UNLICENSED",
   "scripts": {
+    "format": "prettier --write \"src/**/*.ts\"",
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ liquid-collectibles/marketplace-graph",
-    "create-local": "graph create --node http://localhost:8020/ liquid-collectibles/marketplace-graph",
-    "remove-local": "graph remove --node http://localhost:8020/ liquid-collectibles/marketplace-graph",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 liquid-collectibles/marketplace-graph"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ LiquidCollectibles/marketplace-graph",
+    "create-local": "graph create --node http://localhost:8020/ LiquidCollectibles/marketplace-graph",
+    "remove-local": "graph remove --node http://localhost:8020/ LiquidCollectibles/marketplace-graph",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 LiquidCollectibles/marketplace-graph"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.30.1",
-    "@graphprotocol/graph-ts": "0.27.0"
+    "@graphprotocol/graph-ts": "0.27.0",
+    "prettier": "^2.6.2"
   }
 }
