@@ -1,6 +1,25 @@
-type ExampleEntity @entity {
-  id: ID!
-  count: BigInt!
-  manager: Bytes! # address
-  token: Bytes! # address
+type Order @entity(immutable: true) {
+    id: Bytes! # order id
+    sellerAddress: Bytes!
+    buyerAddress: Bytes!
+
+    # token to get
+    tokenToGetType: TokenType!
+    tokenToGetAddress: Bytes!
+    tokenToGetId: BigInt!
+    tokenToGetAmount: BigInt!
+    # token to give
+    tokenToGiveType: TokenType!
+    tokenToGiveAddress: Bytes!
+    tokenToGiveId: BigInt!
+    tokenToGiveAmount: BigInt!
+
+    deadline: BigInt!
+    closeDate: BigInt!
+}
+
+enum TokenType {
+    ERC20
+    ERC721
+    ERC1155
 }
