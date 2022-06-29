@@ -18,6 +18,12 @@ type Order @entity(immutable: true) {
     closeDate: BigInt!
 }
 
+type NftToken @entity {
+    id: Bytes! # nft address
+
+    orders: [Order!]!
+}
+
 enum TokenType {
     ERC20
     ERC721

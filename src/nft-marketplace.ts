@@ -15,17 +15,13 @@ import {
     SwapsPaused,
     SwapsUnpaused,
 } from '../generated/NftMarketplace/NftMarketplace';
-import { Order } from '../generated/schema';
+import { Order, NftToken } from '../generated/schema';
 
-function numberToTokenType(tokenType: number): string {
-    if (tokenType == 0) {
-        return "ERC20";
-    } else if (tokenType == 1) {
-        return "ERC721";
-    } else {
-        return "ERC1155";
-    }
-}
+import { ERC721 } from '../generated/NftMarketplace/ERC721';
+import { ERC1155 } from '../generated/NftMarketplace/ERC1155';
+import { ERC20 } from '../generated/NftMarketplace/ERC20';
+
+import { numberToTokenType } from './helpers';
 
 export function handleSwapMade(event: SwapMade): void {
     const OrderInst = new Order(event.params.orderId);
@@ -35,17 +31,45 @@ export function handleSwapMade(event: SwapMade): void {
     OrderInst.closeDate = event.block.timestamp;
     OrderInst.deadline = event.params.signatureInfo.deadline;
     // token to get
-    OrderInst.tokenToGetType = numberToTokenType(event.params.signatureInfo.tokenToGet.tokenType);
-    OrderInst.tokenToGetAddress = event.params.signatureInfo.tokenToGet.tokenAddress;
+    OrderInst.tokenToGetType = numberToTokenType(
+        event.params.signatureInfo.tokenToGet.tokenType,
+    );
+    OrderInst.tokenToGetAddress =
+        event.params.signatureInfo.tokenToGet.tokenAddress;
     OrderInst.tokenToGetId = event.params.signatureInfo.tokenToGet.id;
     OrderInst.tokenToGetAmount = event.params.signatureInfo.tokenToGet.amount;
     // token to give
-    OrderInst.tokenToGiveType = numberToTokenType(event.params.signatureInfo.tokenToGive.tokenType);
-    OrderInst.tokenToGiveAddress = event.params.signatureInfo.tokenToGive.tokenAddress;
+    OrderInst.tokenToGiveType = numberToTokenType(
+        event.params.signatureInfo.tokenToGive.tokenType,
+    );
+    OrderInst.tokenToGiveAddress =
+        event.params.signatureInfo.tokenToGive.tokenAddress;
     OrderInst.tokenToGiveId = event.params.signatureInfo.tokenToGive.id;
     OrderInst.tokenToGiveAmount = event.params.signatureInfo.tokenToGive.amount;
 
     OrderInst.save();
+
+    if (OrderInst.tokenToGetType != "ERC20") {
+        let nftTokenInst = NftToken.load(OrderInst.tokenToGetAddress);
+        if (nftTokenInst == null) {
+            nftTokenInst = new NftToken(OrderInst.tokenToGetAddress);
+            nftTokenInst.orders = [];
+        }
+
+        nftTokenInst.orders.push(OrderInst.id);
+        nftTokenInst.save();
+    }
+
+    if (OrderInst.tokenToGiveType != "ERC20") {
+        let nftTokenInst = NftToken.load(OrderInst.tokenToGiveAddress);
+        if (nftTokenInst == null) {
+            nftTokenInst = new NftToken(OrderInst.tokenToGiveAddress);
+            nftTokenInst.orders = [];
+        }
+
+        nftTokenInst.orders.push(OrderInst.id);
+        nftTokenInst.save();
+    }
 }
 
 export function handleAddedAdminRoyalty(event: AddedAdminRoyalty): void {}
