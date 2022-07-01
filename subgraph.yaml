@@ -25,6 +25,12 @@ dataSources:
           file: ./abis/ERC1155.json
         - name: ERC20
           file: ./abis/ERC20.json
+        - name: UniswapPair
+          file: ./abis/UniswapPair.json
+        - name: UniswapFactory
+          file: ./abis/UniswapFactory.json
+        - name: UniswapRouter
+          file: ./abis/UniswapRouter.json
       eventHandlers:
         - event: SwapMade((address,bool,bool,(uint8,address,uint256,uint256),(uint8,address,uint256,uint256),uint256),indexed address,indexed address,bytes32)
           handler: handleSwapMade

@@ -1,4 +1,4 @@
-import { BigInt } from '@graphprotocol/graph-ts';
+import { BigDecimal, BigInt, Address } from '@graphprotocol/graph-ts';
 import {
     NftMarketplace,
     AddedAdminRoyalty,
@@ -17,11 +17,8 @@ import {
 } from '../generated/NftMarketplace/NftMarketplace';
 import { Order, NftToken } from '../generated/schema';
 
-import { ERC721 } from '../generated/NftMarketplace/ERC721';
-import { ERC1155 } from '../generated/NftMarketplace/ERC1155';
-import { ERC20 } from '../generated/NftMarketplace/ERC20';
-
 import { numberToTokenType } from './helpers';
+import { getTokenPriceInUsd } from './get-price';
 
 export function handleSwapMade(event: SwapMade): void {
     const OrderInst = new Order(event.params.orderId);
@@ -30,6 +27,7 @@ export function handleSwapMade(event: SwapMade): void {
     OrderInst.sellerAddress = event.params.seller;
     OrderInst.closeDate = event.block.timestamp;
     OrderInst.deadline = event.params.signatureInfo.deadline;
+    OrderInst.usdVolume = BigDecimal.fromString('0');
     // token to get
     OrderInst.tokenToGetType = numberToTokenType(
         event.params.signatureInfo.tokenToGet.tokenType,
@@ -47,29 +45,47 @@ export function handleSwapMade(event: SwapMade): void {
     OrderInst.tokenToGiveId = event.params.signatureInfo.tokenToGive.id;
     OrderInst.tokenToGiveAmount = event.params.signatureInfo.tokenToGive.amount;
 
-    OrderInst.save();
-
-    if (OrderInst.tokenToGetType != "ERC20") {
+    if (OrderInst.tokenToGetType != 'ERC20') {
         let nftTokenInst = NftToken.load(OrderInst.tokenToGetAddress);
         if (nftTokenInst == null) {
             nftTokenInst = new NftToken(OrderInst.tokenToGetAddress);
             nftTokenInst.orders = [];
         }
 
+        nftTokenInst.nftType = OrderInst.tokenToGetType;
+
         nftTokenInst.orders.push(OrderInst.id);
         nftTokenInst.save();
+    } else {
+        OrderInst.usdVolume = OrderInst.usdVolume.plus(
+            getTokenPriceInUsd(
+                event.params.signatureInfo.tokenToGet.tokenAddress,
+                OrderInst.tokenToGetAmount,
+            ),
+        );
     }
 
-    if (OrderInst.tokenToGiveType != "ERC20") {
+    if (OrderInst.tokenToGiveType != 'ERC20') {
         let nftTokenInst = NftToken.load(OrderInst.tokenToGiveAddress);
         if (nftTokenInst == null) {
             nftTokenInst = new NftToken(OrderInst.tokenToGiveAddress);
             nftTokenInst.orders = [];
         }
 
+        nftTokenInst.nftType = OrderInst.tokenToGiveType;
+
         nftTokenInst.orders.push(OrderInst.id);
         nftTokenInst.save();
+    } else {
+        OrderInst.usdVolume = OrderInst.usdVolume.plus(
+            getTokenPriceInUsd(
+                event.params.signatureInfo.tokenToGive.tokenAddress,
+                OrderInst.tokenToGiveAmount,
+            ),
+        );
     }
+
+    OrderInst.save();
 }
 
 export function handleAddedAdminRoyalty(event: AddedAdminRoyalty): void {}

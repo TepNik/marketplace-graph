@@ -16,10 +16,14 @@ type Order @entity(immutable: true) {
 
     deadline: BigInt!
     closeDate: BigInt!
+
+    usdVolume: BigDecimal!
 }
 
 type NftToken @entity {
     id: Bytes! # nft address
+
+    nftType: TokenType!
 
     orders: [Order!]!
 }
