@@ -17,8 +17,10 @@ import {
 } from '../generated/NftMarketplace/NftMarketplace';
 import { Order, NftToken } from '../generated/schema';
 
+import { TokenType } from './models';
 import { numberToTokenType } from './helpers';
 import { getTokenPriceInUsd } from './get-price';
+import { saveNftTokenRangeData, saveOrderRangeData } from './data-range';
 
 export function handleSwapMade(event: SwapMade): void {
     const OrderInst = new Order(event.params.orderId);
@@ -45,6 +47,28 @@ export function handleSwapMade(event: SwapMade): void {
     OrderInst.tokenToGiveId = event.params.signatureInfo.tokenToGive.id;
     OrderInst.tokenToGiveAmount = event.params.signatureInfo.tokenToGive.amount;
 
+    let totalVolume = BigDecimal.fromString('0');
+
+    if (OrderInst.tokenToGetType == 'ERC20') {
+        totalVolume = totalVolume.plus(
+            getTokenPriceInUsd(
+                event.params.signatureInfo.tokenToGet.tokenAddress,
+                OrderInst.tokenToGetAmount,
+            ),
+        );
+    }
+    if (OrderInst.tokenToGiveType == 'ERC20') {
+        totalVolume = totalVolume.plus(
+            getTokenPriceInUsd(
+                event.params.signatureInfo.tokenToGive.tokenAddress,
+                OrderInst.tokenToGiveAmount,
+            ),
+        );
+    }
+
+    OrderInst.usdVolume = totalVolume;
+    OrderInst.save();
+
     if (OrderInst.tokenToGetType != 'ERC20') {
         let nftTokenInst = NftToken.load(OrderInst.tokenToGetAddress);
         if (nftTokenInst == null) {
@@ -56,12 +80,11 @@ export function handleSwapMade(event: SwapMade): void {
 
         nftTokenInst.orders.push(OrderInst.id);
         nftTokenInst.save();
-    } else {
-        OrderInst.usdVolume = OrderInst.usdVolume.plus(
-            getTokenPriceInUsd(
-                event.params.signatureInfo.tokenToGet.tokenAddress,
-                OrderInst.tokenToGetAmount,
-            ),
+
+        saveNftTokenRangeData(
+            event.params.signatureInfo.tokenToGet.tokenAddress,
+            event.block.timestamp,
+            totalVolume
         );
     }
 
@@ -76,16 +99,16 @@ export function handleSwapMade(event: SwapMade): void {
 
         nftTokenInst.orders.push(OrderInst.id);
         nftTokenInst.save();
-    } else {
-        OrderInst.usdVolume = OrderInst.usdVolume.plus(
-            getTokenPriceInUsd(
-                event.params.signatureInfo.tokenToGive.tokenAddress,
-                OrderInst.tokenToGiveAmount,
-            ),
+
+        saveNftTokenRangeData(
+            event.params.signatureInfo.tokenToGive.tokenAddress,
+            event.block.timestamp,
+            totalVolume
         );
     }
 
-    OrderInst.save();
+    // safe range dat
+    saveOrderRangeData(event.block.timestamp, totalVolume);
 }
 
 export function handleAddedAdminRoyalty(event: AddedAdminRoyalty): void {}
