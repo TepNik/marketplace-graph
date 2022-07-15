@@ -28,8 +28,39 @@ type NftToken @entity {
     orders: [Order!]!
 }
 
+type OrderRangeData @entity {
+    id: ID! # rangeType + '-' + intervalNumber
+
+    rangeType: DataRange!
+    intervalNumber: BigInt!
+
+    totalOrders: Int!
+    totalVolumeUsd: BigDecimal!
+}
+
+type NftTokenRangeData @entity {
+    id: ID! # tokenAddress + '-' + rangeType + '-' + intervalNumber
+
+    rangeType: DataRange!
+    intervalNumber: BigInt!
+
+    nftToken: NftToken!
+
+    totalOrders: Int!
+    totalVolumeUsd: BigDecimal!
+}
+
 enum TokenType {
     ERC20
     ERC721
     ERC1155
+}
+
+enum DataRange {
+    ALL_TIME,
+    HOURLY,
+    DAILY,
+    WEEKLY,
+    MONTHLY,
+    YEARLY
 }
